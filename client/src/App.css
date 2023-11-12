@@ -1,0 +1,53 @@
+.header {
+    color: white;
+    display: flex;
+    align-items: center;
+}
+
+.header-image {
+  margin-right: 10px;
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+.flex-item {
+  border-radius: 10px; /* 둥근 외곽선 */
+  box-shadow: 2px 2px 12px rgba(255, 255, 255, 0.35); /* 그림자 효과 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 부드러운 전환 효과 */
+  border: 1px solid rgba(0, 0, 0, 0.5);
+
+  height: 125px;
+  flex: 0 1 125px; /* flex-grow, flex-shrink, flex-basis */
+  margin: 25px;
+  background-color: rgba(5, 4, 4, 0.5);
+  text-decoration: none;
+}
+
+.flex-item:hover {
+  transform: translateY(-5px); /* 마우스 오버 시 위로 살짝 이동 */
+  box-shadow: 2px 2px 16px rgba(255, 255, 255, 0.5); /* 그림자를 더 진하게 */
+}
+
+.flex-item img {
+  width: 100%;
+  height: 95px;
+  image-rendering: pixelated;
+}
+
+.flex-item-name {
+  color: white;
+  text-align: center;  /* 텍스트 중앙 정렬 */
+  text-decoration: none;
+}
+
+@media (max-width: 125px) {
+  .flex-item {
+    flex-basis: 100%;
+  }
+}
