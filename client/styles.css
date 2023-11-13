@@ -4,8 +4,22 @@
   font-weight: normal;
   font-style: normal;
 }
-
+  
 body {
   background-color: black;
   font-family: "NeoDunggeunmoPro-Regular";
+  color: white;
+}
+
+.header {
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.header-image {
+margin-right: 10px;
+width: 64px;
+height: 64px;
+image-rendering: pixelated;
 }
