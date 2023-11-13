@@ -17,9 +17,13 @@ body {
   align-items: center;
 }
 
-.header-image {
+.headerImage {
 margin-right: 10px;
 width: 64px;
 height: 64px;
 image-rendering: pixelated;
+}
+
+.noStyle {
+  text-decoration: none;
 }
