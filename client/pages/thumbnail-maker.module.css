@@ -8,12 +8,12 @@
 
 .settingContainer {
     margin: 25px;
-    width: 25%;
+    width: 35%;
     height: 100%;
 }
 
 .previewDiv {
-    width: 70%;
+    width: 65%;
     height: 100%;
 
     display: flex;         /* Flexbox를 활성화 */
@@ -43,12 +43,26 @@
     object-position: center;
 }
 
-@media(max-width: 400px) {
+.imageSizeInput {
+    width: 80px;
+}
+
+@media(max-width: 1200px) {
     .settingContainer {
         margin: 10px;
         width: 100%;
     }
     .previewDiv{
         width: 100%;
+    }
+}
+
+@media(min-width: 1200px) {
+    .settingContainer {
+        margin: 10px;
+        width: 20%;
+    }
+    .previewDiv{
+        width: 40%  ;
     }
 }
