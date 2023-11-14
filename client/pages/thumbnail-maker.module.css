@@ -19,7 +19,7 @@
     display: flex;         /* Flexbox를 활성화 */
     justify-content: center; /* 가로축을 중앙 정렬 */
     align-items: center;     /* 세로축을 중앙 정렬 */
-    overflow: hidden;
+    overflow: overlay;
     /* 둥근 모서리 */
     border-radius: 10px; /* 모서리를 둥글게 */
 
@@ -38,7 +38,7 @@
 
 .previewImage {
     width: 100%;
-    height: 100%;
+    height: 100%;;
     object-fit: cover;
     object-position: center;
 }
@@ -63,6 +63,6 @@
         width: 20%;
     }
     .previewDiv{
-        width: 40%  ;
+        width: 60%  ;
     }
 }

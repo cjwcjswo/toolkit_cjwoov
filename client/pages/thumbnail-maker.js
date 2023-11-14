@@ -52,7 +52,7 @@ function ThumbnailMaker() {
 
     // Draw Highlight
     const textLines = textContent.split('\n');
-    ctx.font = `${textSize}px Arial`;
+    ctx.font = `${textSize}px fantasy`;
 
     let textMaxWidth = 0;
     let totalTextHeight = 0;
@@ -60,30 +60,23 @@ function ThumbnailMaker() {
     textLines.forEach((line) => {
       const textMetrics = ctx.measureText(line);
       const textWidth = textMetrics.width;
-      totalTextHeight += textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+      totalTextHeight += textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent + Number(textSize/2);
 
       if (textWidth > textMaxWidth) textMaxWidth = textWidth;
     });
 
-    const DELTA = 1.24;
-    totalTextHeight *= DELTA;
+    const textX = (canvas.width - textMaxWidth) / 2;
     const textY = (canvas.height - totalTextHeight) / 2;
 
-    const DELTA_X = 128;
-    const DELTA_Y = 128;
-    const TEXT_LINE_MAX_WIDTH_SIZE = textMaxWidth + DELTA_X;
     if (textHighlight) {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-      ctx.fillRect(canvas.width/2 - (TEXT_LINE_MAX_WIDTH_SIZE/2), 
-                   textY - DELTA_Y / 2, 
-                   TEXT_LINE_MAX_WIDTH_SIZE, 
-                   totalTextHeight + DELTA_Y);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+      ctx.fillRect(textX - Number(textSize/2), textY - Number(textSize/2), 
+                    textMaxWidth + Number(textSize), totalTextHeight + Number(textSize));
     }
 
     // Draw text
     ctx.globalAlpha = 1;
     ctx.fillStyle = textFillColor;
-    ctx.font = `${textSize}px Arial`;
 
     if (textStrokeWidth > 0) {
       ctx.strokeStyle = textStrokeColor;
@@ -93,10 +86,10 @@ function ThumbnailMaker() {
     textLines.forEach((line, i) => {
       const textMetrics = ctx.measureText(line);
       const textWidth = textMetrics.width;
+      const textHeight = (textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent) + Number(textSize/2);
 
       const x = (canvas.width - textWidth) / 2;
-      const y = (textY + (totalTextHeight)) - ((textLines.length - (1 + i)) / 2) * (textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent) * DELTA * 2.2;
-      
+      const y = (textY + totalTextHeight) - (textLines.length - (i+0.8)) * textHeight;
 
       if (textStrokeWidth > 0) ctx.strokeText(line, x, y);
       ctx.fillText(line, x, y);
@@ -196,7 +189,7 @@ function ThumbnailMaker() {
     <div className={styles.thumbnailContainer}>
       <div className={styles.previewDiv}>
         {imageSrc && (
-          <canvas ref={canvasRef} className={styles.previewImage}/>
+          <canvas ref={canvasRef}/>
         )}
       </div>
       <div className={styles.settingContainer}>
