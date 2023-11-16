@@ -81,16 +81,15 @@ function ThumbnailMaker() {
       ctx.lineWidth = textStrokeWidth;
     }
 
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+  
     textLines.forEach((line, i) => {
       const textMetrics = ctx.measureText(line);
-      const textWidth = textMetrics.width;
       const textHeight = (textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent) + Number(textSize/2);
 
-      const x = (canvas.width - textWidth) / 2;
-      const y = (textY + totalTextHeight) - (textLines.length - (i+0.8)) * textHeight;
-
       if (textStrokeWidth > 0) ctx.strokeText(line, x, y);
-      ctx.fillText(line, x, y);
+      ctx.fillText(line, canvas.width / 2, canvas.height/2 + (((textLines.length-1) * -0.5 + i) * textHeight));
     });
 
   }, [imageSize, imageOpacity, textContent, textSize, textFillColor, textStrokeWidth, textStrokeColor, textHighlight]);
@@ -203,7 +202,7 @@ function ThumbnailMaker() {
         </div>
         <div className="mt-2">
           <label>텍스트 입력</label>
-          <textarea rows="5" className="w-full" onChange={handleTextContentChange} placeholder="텍스트를 입력하세요" disabled={sizeInputDisabled} />
+          <textarea rows="5" className="text-black w-full" onChange={handleTextContentChange} placeholder="텍스트를 입력하세요" disabled={sizeInputDisabled} />
         </div>
         <div className="mt-2">
           <label>텍스트 외곽선 두께</label>
@@ -239,7 +238,7 @@ function ThumnailMakerPage() {
     return (
       <>
         <h2 className="flex items-center">
-          <img src="images/thumbnail_maker.png" className="mr-2" width="64px" height="48px" style={{ imageRendering: "pixelated" }}/>
+          <img src="images/thumbnail_maker.png" className="mr-2" width="64px" height="48px" alt="썸네일 메이커" style={{ imageRendering: "pixelated" }}/>
           썸네일 메이커
           </h2>
         <ThumbnailMaker/>

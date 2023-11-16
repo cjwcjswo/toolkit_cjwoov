@@ -9,6 +9,11 @@ const TOOLS = [
       "name": "썸네일 메이커",
       "to": "/thumbnail-maker",
       "imageURL": "images/thumbnail_maker.png"
+    },
+    {
+      "name": "카드뉴스 생성기",
+      "to": "/card-news",
+      "imageURL": "images/card_news.png"
     }
   ]
 
