@@ -83,13 +83,14 @@ function ThumbnailMaker() {
 
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-  
+
+    const x = canvas.width / 2;
     textLines.forEach((line, i) => {
       const textMetrics = ctx.measureText(line);
       const textHeight = (textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent) + Number(textSize/2);
-
+      const y = canvas.height/2 + (((textLines.length-1) * -0.5 + i) * textHeight);
       if (textStrokeWidth > 0) ctx.strokeText(line, x, y);
-      ctx.fillText(line, canvas.width / 2, canvas.height/2 + (((textLines.length-1) * -0.5 + i) * textHeight));
+      ctx.fillText(line, x, y);
     });
 
   }, [imageSize, imageOpacity, textContent, textSize, textFillColor, textStrokeWidth, textStrokeColor, textHighlight]);
