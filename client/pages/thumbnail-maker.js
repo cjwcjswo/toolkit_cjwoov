@@ -185,7 +185,7 @@ function ThumbnailMaker() {
 
   return (
     <div className="flex flex-wrap mt-2">
-      <div className="flex border-2 border-gray-600 rounded-3xl m-2 w-full xl:basis-3/4 aspect-[2/1]">
+      <div className="flex border-2 border-gray-600 rounded-3xl m-2 w-full aspect-[2/1] overflow-auto xl:basis-3/4 ">
         {imageSrc && (
           <canvas className="mx-auto my-auto" ref={canvasRef}/>
         )}
