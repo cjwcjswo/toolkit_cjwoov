@@ -29,7 +29,7 @@ function Home() {
                   <Tool key={element.to} name={element.name} to={element.to} imageURL={element.imageURL}/>
                 );
               })}
-        <Tool name="개발 중" imageURL="" to=""/>
+        <Tool name="테스트 페이지" imageURL="" to="/test-page"/>
         <Tool name="개발 중" imageURL="" to=""/>
         <Tool name="개발 중" imageURL="" to=""/>
         <Tool name="개발 중" imageURL="" to=""/>

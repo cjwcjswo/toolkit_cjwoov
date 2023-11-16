@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import Space from '../src/space';
-import styles from './thumbnail-maker.module.css';
 
 const DEFAULT_IMAGE_SIZE = { width: 1200, height: 628 };
 const DEFAULT_EXTENSION = 'png';
@@ -186,60 +184,51 @@ function ThumbnailMaker() {
   };
 
   return (
-    <div className={styles.thumbnailContainer}>
-      <div className={styles.previewDiv}>
+    <div className="flex flex-wrap mt-2">
+      <div className="flex border-2 border-gray-600 rounded-3xl m-2 w-full xl:basis-3/4 aspect-[2/1]">
         {imageSrc && (
-          <canvas ref={canvasRef}/>
+          <canvas className="mx-auto my-auto" ref={canvasRef}/>
         )}
       </div>
-      <div className={styles.settingContainer}>
-        <input type="file" onChange={handleImageChange} accept="image/*" />
-        <Space value="20px" />
-        <div style={{ border: '1px solid white', borderRadius: '3px', padding: '5px' }}>
-          너비: <input type="number" name="imageWidth" min="1" value={imageSize.width} className={styles.imageSizeInput} disabled={sizeInputDisabled} onChange={handleImageWidthChange} />px<br />
-          높이: <input type="number" name="imageHeight" min="1" value={imageSize.height} className={styles.imageSizeInput} disabled={sizeInputDisabled} onChange={handleImageHeightChange} />px<br />
-          <button onClick={resizeImage} disabled={sizeInputDisabled}>이미지 크기 조절</button>
+      <div className="m-2 w-full xl:w-fit">
+        <input type="file" className="mt-2" onChange={handleImageChange} accept="image/*" />
+        <div className="mt-4 text-center border-2 border-gray-400 border-separate">
+          너비: <input type="number" className="mt-2 text-black" name="imageWidth" min="1" value={imageSize.width} disabled={sizeInputDisabled} onChange={handleImageWidthChange} />px<br />
+          높이: <input type="number" className="mt-2 text-black" name="imageHeight" min="1" value={imageSize.height} disabled={sizeInputDisabled} onChange={handleImageHeightChange} />px<br />
+          <button className="my-2 p-2 bg-blue-500 rounded disabled:bg-gray-800" onClick={resizeImage} disabled={sizeInputDisabled}>이미지 크기 조절</button>
         </div>
-        <Space value="20px" />
-        <div>
+        <div className="mt-2">
           <label>투명도 조절</label>
-          <input type="range" min="0" max="1" step="0.01" style={{ width: '100%' }} value={imageOpacity} onChange={handleImageOpacityChange} disabled={sizeInputDisabled} />
+          <input type="range" className="w-full" min="0" max="1" step="0.01" value={imageOpacity} onChange={handleImageOpacityChange} disabled={sizeInputDisabled} />
         </div>
-        <Space value="20px" />
-        <div>
+        <div className="mt-2">
           <label>텍스트 입력</label>
-          <textarea rows="5" style={{ width: '100%' }} onChange={handleTextContentChange} placeholder="텍스트를 입력하세요" disabled={sizeInputDisabled} />
+          <textarea rows="5" className="w-full" onChange={handleTextContentChange} placeholder="텍스트를 입력하세요" disabled={sizeInputDisabled} />
         </div>
-        <Space value="20px" />
-        <div>
+        <div className="mt-2">
           <label>텍스트 외곽선 두께</label>
           <input type="range" min="0" max="50" step="1" style={{ width: '100%' }} value={textStrokeWidth} onChange={handleTextStrokeWidthChange} disabled={sizeInputDisabled} />
         </div>
-        <Space value="10px" />
-        <div>
+        <div className="mt-2">
           <label>텍스트 크기</label>
           <input type="range" min="10" max="500" step="1" style={{ width: '100%' }} value={textSize} onChange={handleTextSizeChange} disabled={sizeInputDisabled} />
         </div>
-        <Space value="10px" />
-        <div>
+        <div className="mt-2">
           <input type="color" value={textFillColor} onChange={handleTextFillColorChange} disabled={sizeInputDisabled} />
           <label>텍스트 채우기 색상 선택</label>
         </div>
-        <Space value="10px" />
-        <div>
+        <div className="mt-2">
           <input type="color" value={textStrokeColor} onChange={handleTextStrokeColorChange} disabled={sizeInputDisabled} />
           <label>텍스트 외곽선 색상 선택</label>
         </div>
-        <Space value="10px" />
-        <div>
+        <div className="mt-2">
           <input type="checkbox" name="textHighlight" value="textHighlight" onChange={handleTextHighlightChange} checked={textHighlight} disabled={sizeInputDisabled}/>
           <label>텍스트 강조 선택</label>
         </div>
-        <Space value="10px" />
-        <div style={{ textAlign: 'center', margin: 'auto' }}>
-          <input type="radio" name="ext" value="png" checked={imageExtension === 'png'} onChange={() => setImageExtension('png')} />PNG
-          <input type="radio" name="ext" value="webp" checked={imageExtension === 'webp'} onChange={() => setImageExtension('webp')} />WEBP
-          <button onClick={saveImage} disabled={sizeInputDisabled}>썸네일 저장</button>
+        <div className="mt-2 wd-full text-center">
+          <input type="radio" name="ext" value="png" checked={imageExtension === 'png'} onChange={() => setImageExtension('png')} />PNG &emsp;
+          <input type="radio" name="ext" value="webp" checked={imageExtension === 'webp'} onChange={() => setImageExtension('webp')} />WEBP<br/>
+          <button className="my-2 p-2 bg-blue-500 rounded disabled:bg-gray-800" onClick={saveImage} disabled={sizeInputDisabled}>썸네일 저장</button>
         </div>
       </div>
     </div>
@@ -249,10 +238,8 @@ function ThumbnailMaker() {
 function ThumnailMakerPage() {
     return (
       <>
-        <h2 style={{display: "flex", alignItems: "center"}}>
-          <img src="images/thumbnail_maker.png" style={
-            {imageRendering: "pixelated", width: "64 px", height: "48px", marginRight: "10px"}
-            }/>
+        <h2 className="flex items-center">
+          <img src="images/thumbnail_maker.png" className="mr-2" width="64px" height="48px" style={{ imageRendering: "pixelated" }}/>
           썸네일 메이커
           </h2>
         <ThumbnailMaker/>
