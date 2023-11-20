@@ -24,18 +24,35 @@ const CardNews = ({page, setting}) => {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         console.log(setting);
 
-        let textLines = 0;
+        let textLines = [];
         if (contentText !== '') {
             textLines = contentText.split('\n');
         }
 
+        const MARGIN_X = 15;
+        const MARGIN_Y = 15;
+
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         let textX = canvas.width / 2;
-        let textY = 15;
+        let textY = MARGIN_Y;
+        if (setting.textVerticalAlign === 'bottom') {
+            textY = canvas.height - MARGIN_Y;
+        }
 
-        const MARGIN_X = 15;
-        const MARGIN_Y = 15;
+        textLines.forEach((line)=>{
+            const textMetrics = ctx.measureText(line);
+            const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+            
+            if (setting.textVerticalAlign === 'top') {
+                // empty
+            } else if(setting.textVerticalAlign === 'middle') {
+                textY -= (textHeight + MARGIN_Y) / 2;
+            } else {
+                textY -= (textHeight + MARGIN_Y);
+                console.log(textY);
+            }
+        });
 
         if (titleText !== '') {
             ctx.fillStyle = setting.titleTextColor;
@@ -43,23 +60,36 @@ const CardNews = ({page, setting}) => {
             if (setting.textHorizontalAlign === 'left') {
                 ctx.textAlign = 'left';
                 textX = MARGIN_X;
-                textY = MARGIN_Y;
             } else if(setting.textHorizontalAlign === 'right') {
                 ctx.textAlign = 'right';
                 textX = canvas.width - MARGIN_X;
-                textY = MARGIN_Y;
             }
 
             const textMetrics = ctx.measureText(titleText);
+            const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+            if (setting.textVerticalAlign === 'top') {
+                textY = MARGIN_Y;
+            } else if (setting.textVerticalAlign === 'middle') {
+                textY += canvas.height / 2 - textHeight;
+            } else {
+                textY -= (textHeight*2 + MARGIN_Y);
+            }
+            
             ctx.fillText(titleText, textX, textY);
-            textY += textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent + MARGIN_Y;
+            textY += textHeight - MARGIN_Y;
         }
 
         if (contentText !== '') {
             ctx.fillStyle = setting.contentTextColor;
             ctx.font = `${setting.contentTextThickness} ${setting.contentTextSize}px ${setting.font}`
 
-            ctx.fillText(contentText, textX, textY);
+            textLines.forEach((line)=>{
+                const textMetrics = ctx.measureText(line);
+                const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
+                
+                textY += textHeight + MARGIN_Y;
+                ctx.fillText(line, textX, textY);
+            });
         }
         
     },[canvasRef, setting, titleText, contentText]);
@@ -131,9 +161,12 @@ const CardNewsBasicSetting = (props) => {
             </div>
             <div className="mt-4">
                 글자 수직 정렬:
-                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400">상단</button>
-                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400">중앙</button>
-                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400">하단</button>
+                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400"
+                    onClick={()=>{props.onClickTextVerticalAlign('top')}}>상단</button>
+                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400"
+                    onClick={()=>{props.onClickTextVerticalAlign('middle')}}>중앙</button>
+                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400"
+                    onClick={()=>{props.onClickTextVerticalAlign('bottom')}}>하단</button>
             </div>
             <div className="mt-4">
                 글자 수평 정렬:
@@ -287,6 +320,14 @@ const CardNewsPage = () => {
         });
     }
 
+    // 글자 수직 정렬
+    const handleClickTextVerticalAlign = (align) => {
+        setSetting({
+            ...setting,
+            "textVerticalAlign": align
+        });
+    }
+
     return (
         <>
             <h2 className="flex items-center">
@@ -305,6 +346,7 @@ const CardNewsPage = () => {
                     onChangeContentTextThickness={(thickness)=>{handleChangeContentTextThickness(thickness)}}
                     onChangeBackgroundColor={(color)=>{handleChangeBackgroundColor(color)}}
                     onClickTextHorizontalAlign={(align)=>{handleClickTextHorizontalAlign(align)}}
+                    onClickTextVerticalAlign={(align)=>{handleClickTextVerticalAlign(align)}}
                 />
             </div>
         </>
