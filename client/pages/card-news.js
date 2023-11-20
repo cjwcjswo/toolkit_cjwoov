@@ -22,25 +22,54 @@ const CardNews = ({page, setting}) => {
 
         ctx.fillStyle = setting.backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        console.log(setting);
+
+        let textLines = 0;
+        if (contentText !== '') {
+            textLines = contentText.split('\n');
+        }
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        let textX = canvas.width / 2;
+        let textY = 15;
+
+        const MARGIN_X = 15;
+        const MARGIN_Y = 15;
 
         if (titleText !== '') {
-            ctx.fillStyle = 'black';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const textX = canvas.width / 2;
-            const textY = canvas.height / 2;
+            ctx.fillStyle = setting.titleTextColor;
+            ctx.font = `${setting.titleTextThickness} ${setting.titleTextSize}px ${setting.font}`
+            if (setting.textHorizontalAlign === 'left') {
+                ctx.textAlign = 'left';
+                textX = MARGIN_X;
+                textY = MARGIN_Y;
+            } else if(setting.textHorizontalAlign === 'right') {
+                ctx.textAlign = 'right';
+                textX = canvas.width - MARGIN_X;
+                textY = MARGIN_Y;
+            }
 
+            const textMetrics = ctx.measureText(titleText);
             ctx.fillText(titleText, textX, textY);
+            textY += textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent + MARGIN_Y;
         }
 
         if (contentText !== '') {
+            ctx.fillStyle = setting.contentTextColor;
+            ctx.font = `${setting.contentTextThickness} ${setting.contentTextSize}px ${setting.font}`
 
+            ctx.fillText(contentText, textX, textY);
         }
         
     },[canvasRef, setting, titleText, contentText]);
 
     const handleTitleTextChange = (e) => {
         setTitleText(e.target.value);
+    }
+
+    const handleContentTextChange = (e) => {
+        setContentText(e.target.value);
     }
 
     return (
@@ -56,7 +85,7 @@ const CardNews = ({page, setting}) => {
                 </div>
                 <div className="mt-2 w-full">
                     내용 
-                    <textarea className="w-full text-black" rows="5"/>
+                    <textarea className="w-full text-black" rows="5" onChange={handleContentTextChange}/>
                 </div>
             </div>
         </div>
@@ -71,20 +100,30 @@ const CardNewsBasicSetting = (props) => {
                 대본 업로드: <input type="file"/>
             </div>
             <div className="mt-4">
-                제목 색상: <input type="color"/>
+                제목 색상: <input type="color" onChange={(e) => {props.onChangeTitleTextColor(e.target.value)}}/>
             </div>
             <div className="mt-4">
-                제목 크기: <input type="range" min="1" max="128" step="1" className="w-1/4"></input>
+                제목 크기: <input type="range" min="1" max="128" step="1" className="w-1/4"
+                                onChange={(e) => {props.onChangeTitleTextSize(e.target.value)}}/>
             </div>
             <div className="mt-4">
-                내용 색상: <input type="color"/>
+                제목 굵기: <input type="range" min="1" max="1000" step="1" className="w-1/4"
+                                onChange={(e) => {props.onChangeTitleTextThickness(e.target.value)}}/>
             </div>
             <div className="mt-4">
-                내용 크기: <input type="range" min="1" max="128" step="1" className="w-1/4"></input>
+                내용 색상: <input type="color" onChange={(e) => {props.onChangeContentTextColor(e.target.value)}}/>
+            </div>
+            <div className="mt-4">
+                내용 크기: <input type="range" min="1" max="128" step="1" className="w-1/4"
+                                onChange={(e) => {props.onChangeContentTextSize(e.target.value)}}/>
+            </div>
+            <div className="mt-4">
+                내용 굵기: <input type="range" min="1" max="1000" step="1" className="w-1/4"
+                                onChange={(e) => {props.onChangeContentTextThickness(e.target.value)}}/>
             </div>
             <div className="mt-4">
                 폰트 선택: 
-                <select className="text-black ml-1">
+                <select className="text-black ml-1" onChange={(e)=>{props.onChangeFont(e.target.value)}}>
                     {DEFAULT_FONTS.map((font, index) => {
                       return (<option value={font} key={index}>{font}</option>); 
                     })}
@@ -98,9 +137,12 @@ const CardNewsBasicSetting = (props) => {
             </div>
             <div className="mt-4">
                 글자 수평 정렬:
-                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400">좌측</button>
-                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400">중앙</button>
-                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400">우측</button>
+                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400"
+                    onClick={()=>{props.onClickTextHorizontalAlign('left')}}>좌측</button>
+                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400"
+                    onClick={()=>{props.onClickTextHorizontalAlign('center')}}>중앙</button>
+                <button className="bg-blue-400 rounded-lg p-1 mx-2 hover:bg-red-400"
+                    onClick={()=>{props.onClickTextHorizontalAlign('right')}}>우측</button>
             </div>
             <div className="mt-4">
                 글자 외곽선: <input type="range" min="0" max="10" step="1" className="w-1/4"></input>
@@ -156,12 +198,16 @@ const CardNewsMaker = ({setting}) => {
 
 const DEFAULT_SETTING = {
     "font": DEFAULT_FONTS[0],
-    "titleColor": "black",
-    "contentColor": "black",
+    "titleTextColor": "black",
+    "titleTextSize": 10,
+    "titleTextThickness": 1,
+    "contentTextColor": "black",
+    "contentTextSize": 10,
+    "contentTextThickness": 1,
     "textStrokeSize": 1,
     "textStrokeColor": "white",
-    "textAlign": "left",
-    "textBaseline": "top",
+    "textHorizontalAlign": "right",
+    "textVerticalAlign": "top",
     "backgroundColor": "white",
     "backgroundImage": ""
 
@@ -169,12 +215,75 @@ const DEFAULT_SETTING = {
 const CardNewsPage = () => {
     const [setting, setSetting] = useState(DEFAULT_SETTING);
 
+    // 폰트 변경
+    const handleChangeFont = (font) => {
+        setSetting({
+            ...setting,
+            "font": font
+        });
+    }
 
-    // 배경 이미지 변경
+    // 제목 크기 변경
+    const handleChangeTitleTextSize = (size) => {
+        setSetting({
+            ...setting,
+            "titleTextSize": size
+        });
+    }
+
+    // 제목 색상 변경
+    const handleChangeTitleTextColor = (color) => {
+        setSetting({
+            ...setting,
+            "titleTextColor": color
+        });
+    }
+
+    // 제목 굵기 변경
+    const handleChangeTitleTextThickness = (thickness) => {
+        setSetting({
+            ...setting,
+            "titleTextThickness": thickness
+        });
+    }
+
+    // 내용 크기 변경
+    const handleChangeContentTextSize = (size) => {
+        setSetting({
+            ...setting,
+            "contentTextSize": size
+        });
+    }
+
+    // 내용 색상 변경
+    const handleChangeContentTextColor = (color) => {
+        setSetting({
+            ...setting,
+            "contentTextColor": color
+        });
+    }
+
+    // 내용 굵기 변경
+    const handleChangeContentTextThickness = (thickness) => {
+        setSetting({
+            ...setting,
+            "contentTextThickness": thickness
+        });
+    }
+
+    // 배경 색상 변경
     const handleChangeBackgroundColor = (color) => {
         setSetting({
             ...setting,
             "backgroundColor": color
+        });
+    }
+
+    // 글자 수평 정렬
+    const handleClickTextHorizontalAlign = (align) => {
+        setSetting({
+            ...setting,
+            "textHorizontalAlign": align
         });
     }
 
@@ -187,7 +296,15 @@ const CardNewsPage = () => {
             <div className="wd-full m-2">
                 <CardNewsMaker setting={setting}/>
                 <CardNewsBasicSetting
+                    onChangeFont={(font)=>{handleChangeFont(font)}}
+                    onChangeTitleTextSize={(size)=>{handleChangeTitleTextSize(size)}}
+                    onChangeTitleTextColor={(color)=>{handleChangeTitleTextColor(color)}}
+                    onChangeTitleTextThickness={(thickness)=>{handleChangeTitleTextThickness(thickness)}}
+                    onChangeContentTextSize={(size)=>{handleChangeContentTextSize(size)}}
+                    onChangeContentTextColor={(color)=>{handleChangeContentTextColor(color)}}
+                    onChangeContentTextThickness={(thickness)=>{handleChangeContentTextThickness(thickness)}}
                     onChangeBackgroundColor={(color)=>{handleChangeBackgroundColor(color)}}
+                    onClickTextHorizontalAlign={(align)=>{handleClickTextHorizontalAlign(align)}}
                 />
             </div>
         </>
