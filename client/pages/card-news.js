@@ -1,8 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const CardNews = ({page}) => {
+const CardNews = ({page, setting}) => {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
+
+    const [titleText, setTitleText] = useState('');
+    const [contentText, setContentText] = useState('');
 
     useEffect(()=>{
         if (!canvasRef.current) {
@@ -17,22 +20,39 @@ const CardNews = ({page}) => {
         canvas.width = container.offsetWidth;
         canvas.height = container.offsetHeight;
 
-        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.fillStyle = setting.backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        console.log(canvas.width, canvas.height);
+        if (titleText !== '') {
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const textX = canvas.width / 2;
+            const textY = canvas.height / 2;
+
+            ctx.fillText(titleText, textX, textY);
+        }
+
+        if (contentText !== '') {
+
+        }
         
-    },[canvasRef]);
+    },[canvasRef, setting, titleText, contentText]);
+
+    const handleTitleTextChange = (e) => {
+        setTitleText(e.target.value);
+    }
+
     return (
         <div>
-            <div ref={containerRef} className="relative justify-center items-center flex m-2 border-2 border-dashed border-gray-800 h-3/4 aspect-square rounded-lg hover:bg-red-300 hover:cursor-pointer">
+            <div ref={containerRef} className="min-w-[300px] max-w-[300px] relative justify-center items-center flex m-2 border-2 border-dashed border-gray-800 aspect-square rounded-lg hover:bg-red-300 hover:cursor-pointer">
                 <div className='absolute top-2 bg-slate-500 bg-opacity-30 rounded-2xl p-1'>{page} 페이지</div>
                 <canvas ref={canvasRef} className='w-full h-full'/>
             </div>
-            <div className="m-2">
+            <div className="m-2 hidden md:block">
                 <div>
                     제목
-                    <input type="text" className="w-full text-black"/>
+                    <input type="text" className="w-full text-black" onChange={handleTitleTextChange}/>
                 </div>
                 <div className="mt-2 w-full">
                     내용 
@@ -44,7 +64,7 @@ const CardNews = ({page}) => {
 }
 
 const DEFAULT_FONTS = ['Arial', 'Georgia', 'Times New Roman', 'Courier New'];
-const CardNewsBasicSetting = () => {
+const CardNewsBasicSetting = (props) => {
     return (
         <div className="w-full border-gray-600 border-2 p-2">
             <div>
@@ -88,6 +108,9 @@ const CardNewsBasicSetting = () => {
             <div className="mt-4">
                 글자 외곽선 색상: <input type="color"/>
             </div>
+            <div className="mt-4">
+                배경 색상: <input type="color" onChange={(e) => {props.onChangeBackgroundColor(e.target.value)}}/>
+            </div>
             <div className='mt-4'>
                 배경 파일: <input type="file"/>
             </div>
@@ -95,7 +118,7 @@ const CardNewsBasicSetting = () => {
     );
 }
 
-const CardNewsMaker = () => {
+const CardNewsMaker = ({setting}) => {
     const [cardList, setCardList] = useState([
         {
             "page": 1
@@ -123,7 +146,7 @@ const CardNewsMaker = () => {
         <div ref={scrollRef} className='flex bg-zinc-950 border-double border-gray-900 border-4 wd-full overflow-auto'>
             <div className="flex flex-row justify-center items-center">
                 {cardList.map((card)=>{
-                    return (<CardNews key={card.page} page={card.page}/>);
+                    return (<CardNews key={card.page} page={card.page} setting={setting}/>);
                 })}
                 <button className='bg-zinc-700 px-2 rounded-full bg-opacity-80 text-center mx-12' onClick={handleAddCardNews}>+</button>
             </div>
@@ -132,7 +155,6 @@ const CardNewsMaker = () => {
 }
 
 const DEFAULT_SETTING = {
-    "cardBackgroundColor": "white",
     "font": DEFAULT_FONTS[0],
     "titleColor": "black",
     "contentColor": "black",
@@ -140,11 +162,21 @@ const DEFAULT_SETTING = {
     "textStrokeColor": "white",
     "textAlign": "left",
     "textBaseline": "top",
+    "backgroundColor": "white",
     "backgroundImage": ""
 
 };
 const CardNewsPage = () => {
-    const [cardBackgroundColor, setCardBackgroundColor] = useState('DEFAULT_CARD_BACKGROUND_COLOR');
+    const [setting, setSetting] = useState(DEFAULT_SETTING);
+
+
+    // 배경 이미지 변경
+    const handleChangeBackgroundColor = (color) => {
+        setSetting({
+            ...setting,
+            "backgroundColor": color
+        });
+    }
 
     return (
         <>
@@ -153,8 +185,10 @@ const CardNewsPage = () => {
                 카드뉴스 생성기
             </h2>
             <div className="wd-full m-2">
-                <CardNewsMaker/>
-                <CardNewsBasicSetting/>
+                <CardNewsMaker setting={setting}/>
+                <CardNewsBasicSetting
+                    onChangeBackgroundColor={(color)=>{handleChangeBackgroundColor(color)}}
+                />
             </div>
         </>
     );
