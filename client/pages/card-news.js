@@ -1,15 +1,24 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const CardNews = ({ page, setting }) => {
+const CardNews = ({ page, setting, title, content }) => {
     const canvasRef = useRef(null);
 
-    const [titleText, setTitleText] = useState('');
-    const [contentText, setContentText] = useState('');
+    const [titleText, setTitleText] = useState("");
+    const [contentText, setContentText] = useState("");
+    const [imageSrc, setImageSrc] = useState('');
 
     useEffect(() => {
         if (!canvasRef.current) {
             return;
         }
+
+        if (title !== "") {
+            setTitleText(title);
+        }
+        if (content !== "") {
+            setContentText(content);
+        }
+        
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
@@ -25,9 +34,9 @@ const CardNews = ({ page, setting }) => {
 
             if (setting.textShadow === true) {
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetX = 15;
-                ctx.shadowOffsetY = 15;
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 10;
+                ctx.shadowOffsetY = 10;
             }
         };
 
@@ -43,21 +52,27 @@ const CardNews = ({ page, setting }) => {
             }
 
             const MARGIN_X = 15;
-            const MARGIN_Y = 15;
+            const MARGIN_Y = 50;
 
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            let textX = canvas.width / 2;
-            let textY = MARGIN_Y;
-            if (titleTextStyle.textVerticalAlign === 'bottom') {
-                textY = canvas.height - MARGIN_Y;
+            if (titleTextStyle.textHorizontalAlign === 'left') {
+                ctx.textAlign = 'left';
+                textX = MARGIN_X;
+            } else if (titleTextStyle.textHorizontalAlign === 'right') {
+                ctx.textAlign = 'right';
+                textX = canvas.width - MARGIN_X;
+            } else {
+                textX = canvas.width / 2;
             }
+
+            ctx.textBaseline = 'top';
+            let textX, textY = 0;
 
             textLines.forEach((line) => {
                 ctx.font = `${contentTextStyle.textThickness} ${contentTextStyle.textSize}px ${contentTextStyle.font}`
                 const textMetrics = ctx.measureText(line);
                 const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-                
+
                 if (titleTextStyle.textVerticalAlign === 'top') {
                     // empty
                 } else if (titleTextStyle.textVerticalAlign === 'middle') {
@@ -68,40 +83,32 @@ const CardNews = ({ page, setting }) => {
             });
 
             if (titleTextStyle.textVerticalAlign === 'top') {
-                textY = MARGIN_Y;
+                // empty
             } else if (titleTextStyle.textVerticalAlign === 'middle') {
                 textY += canvas.height / 2;
             } else {
-                textY -= MARGIN_Y;
+                textY += canvas.height - MARGIN_Y;
             }
 
             if (titleText !== '') {
-                ctx.fillStyle = titleTextStyle.titleTextColor;
+                ctx.fillStyle = titleTextStyle.textColor;
                 ctx.font = `${titleTextStyle.textThickness} ${titleTextStyle.textSize}px ${titleTextStyle.font}`
-                if (titleTextStyle.textHorizontalAlign === 'left') {
-                    ctx.textAlign = 'left';
-                    textX = MARGIN_X;
-                } else if (titleTextStyle.textHorizontalAlign === 'right') {
-                    ctx.textAlign = 'right';
-                    textX = canvas.width - MARGIN_X;
-                }
-
+                
                 const textMetrics = ctx.measureText(titleText);
                 const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
-                if (titleTextStyle.textVerticalAlign === 'top') {
-                    textY = MARGIN_Y;
-                } else if (titleTextStyle.textVerticalAlign === 'middle') {
-                    textY -= textHeight;
-                } else {
-                    textY -= textHeight * 2;
-                }
 
+                textY += MARGIN_Y;
+                if (titleTextStyle.textVerticalAlign === 'middle') {
+                    textY -= (textHeight / 2 + MARGIN_Y);
+                } else if (titleTextStyle.textVerticalAlign == 'bottom') {
+                    textY -= textHeight + MARGIN_Y;
+                }
                 ctx.fillText(titleText, textX, textY);
                 if (Number(setting.textStrokeSize) > 0) {
                     ctx.strokeText(titleText, textX, textY);
                 }
 
-                textY += textHeight + MARGIN_Y * 3;
+                textY += textHeight;
             }
 
             if (contentText !== '') {
@@ -112,14 +119,30 @@ const CardNews = ({ page, setting }) => {
                     const textMetrics = ctx.measureText(line);
                     const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
                     
+                    textY += MARGIN_Y;
                     ctx.fillText(line, textX, textY);
                     if (Number(setting.textStrokeSize) > 0) {
                         ctx.strokeText(line, textX, textY);
                     }
-                    textY += textHeight + MARGIN_Y;
+                    textY += textHeight;
                 });
             }
         };
+
+        if (imageSrc !== '') {
+            const image = new Image();
+            image.src = imageSrc;
+
+            image.onload = () => {
+                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+                ctx.globalAlpha = 1;
+                applyCommonSettings();
+                renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
+            };
+
+            return;
+        }
 
         if (setting.backgroundImage !== '') {
             const image = new Image();
@@ -133,16 +156,18 @@ const CardNews = ({ page, setting }) => {
                 applyCommonSettings();
                 renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
             };
-        } else {
-            ctx.globalAlpha = 1;
-            ctx.fillStyle = setting.backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            applyCommonSettings();
-            renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
+            return;
         }
 
-    }, [canvasRef, setting, titleText, contentText]);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = setting.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        applyCommonSettings();
+        renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
+
+    }, [canvasRef, setting, imageSrc, title, content]);
 
     const handleTitleTextChange = (e) => {
         setTitleText(e.target.value);
@@ -152,6 +177,20 @@ const CardNews = ({ page, setting }) => {
         setContentText(e.target.value);
     }
 
+    // 이미지 파일 선택 핸들러
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+            setImageSrc(reader.result);
+        };
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    };
+    
     return (
         <div>
             <div className="min-w-[300px] max-w-[300px] relative justify-center items-center flex m-2 border-2 border-dashed border-gray-800 aspect-square rounded-lg hover:bg-red-300 hover:cursor-pointer">
@@ -167,6 +206,9 @@ const CardNews = ({ page, setting }) => {
                     내용
                     <textarea className="w-full text-black" rows="5" onChange={handleContentTextChange} />
                 </div>
+                <div className="mt-2">
+                    <input type="file" accept="image/*" onChange={handleImageChange}/>
+                </div>
             </div>
         </div>
     )
@@ -177,7 +219,7 @@ const CardNewsBasicSetting = (props) => {
     return (
         <div className="w-full border-gray-600 border-2 p-2">
             <div>
-                대본 업로드: <input type="file" />
+                대본 업로드: <input type="file" onChange={props.onChangeTextScript} accept=".txt"/>
             </div>
             <div className="mt-4">
                 제목 색상: <input type="color" onChange={(e) => { props.onChangeTitleTextColor(e.target.value) }} />
@@ -251,35 +293,44 @@ const CardNewsBasicSetting = (props) => {
     );
 }
 
-const CardNewsMaker = ({ setting }) => {
-    const [cardList, setCardList] = useState([
-        {
-            "page": 1
-        }
-    ]);
+const CardNewsMaker = ({ setting, textScript }) => {
+    const [cardList, setCardList] = useState([]);
     const scrollRef = useRef(null);
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+        if (textScript === "") {
+            setCardList([]);
+            return;
         }
-    }, [cardList]);
+
+        const pages = textScript.split('\r\n\r\n\r\n');
+        let newCardList = pages.map((page, index) => {
+            const lines = page.split('\r\n');
+            const title = lines[0];
+            const content = lines.slice(1).join('\r\n'); // 첫 번째 줄 이후의 내용을 content로 합침
+            return { page: index + 1, title, content };
+        });
+
+        setCardList(newCardList);
+        // if (scrollRef.current) {
+        //     scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+        // }
+    }, [textScript]);
 
     const handleAddCardNews = () => {
-        const currentPage = cardList.length;
-        const newCardList = cardList.slice();
-        newCardList.push({
-            page: currentPage + 1
-        });
-        console.log(newCardList);
+        const newCardList = [...cardList, {
+            page: cardList.length + 1,
+            title: "",
+            content: ""
+        }];
         setCardList(newCardList);
     }
 
     return (
-        <div ref={scrollRef} className='flex bg-zinc-950 border-double border-gray-900 border-4 wd-full overflow-auto'>
+        <div ref={scrollRef} className='flex bg -zinc-950 border-double border-gray-900 border-4 wd-full overflow-auto'>
             <div className="flex flex-row justify-center items-center">
                 {cardList.map((card) => {
-                    return (<CardNews key={card.page} page={card.page} setting={setting} />);
+                    return (<CardNews key={card.page} page={card.page} title={card.title} content={card.content} setting={setting} />);
                 })}
                 <button className='bg-zinc-700 px-2 rounded-full bg-opacity-80 text-center mx-12' onClick={handleAddCardNews}>+</button>
             </div>
@@ -291,7 +342,7 @@ const DEFAULT_SETTING = {
     "titleTextStyle": {
         "font": DEFAULT_FONTS[0],
         "textColor": "black",
-        "textSize": 10,
+        "textSize": 128,
         "textThickness": 1,
         "textHorizontalAlign": "right",
         "textVerticalAlign": "top"
@@ -299,12 +350,12 @@ const DEFAULT_SETTING = {
     "contentTextStyle": {
         "font": DEFAULT_FONTS[0],
         "textColor": "black",
-        "textSize": 10,
+        "textSize": 100,
         "textThickness": 1,
         "textHorizontalAlign": "right",
         "textVerticalAlign": "top"
     },
-    "textStrokeSize": 1,
+    "textStrokeSize": 0,
     "textStrokeColor": "white",
     "backgroundColor": "white",
     "backgroundImage": "",
@@ -315,6 +366,7 @@ const DEFAULT_SETTING = {
 };
 const CardNewsPage = () => {
     const [setting, setSetting] = useState(DEFAULT_SETTING);
+    const [textScript, setTextScript] = useState('');
 
     // 폰트 변경
     const handleChangeFont = (font) => {
@@ -462,19 +514,32 @@ const CardNewsPage = () => {
     // 이미지 파일 선택 핸들러
     const handleBackgroundImageChange = (e) => {
         const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
         const reader = new FileReader();
+        reader.readAsDataURL(file);
 
         reader.onloadend = () => {
             setSetting({
                 ...setting,
                 "backgroundImage": reader.result
             });
-        };
-
-        if (file) {
-            reader.readAsDataURL(file);
-        }
+        };   
     };
+
+    // 대본 선택 핸들러
+    const handleTextScriptChange = (event) => {
+        const file = event.target.files[0];
+
+        const reader = new FileReader();
+        reader.readAsText(file);
+
+        reader.onload = (e) => {
+            setTextScript(e.target.result);
+        };
+    }
 
     // 배경 이미지 투명도 조절
     const handleBackgroundImageOpacityChange = (opacity) => {
@@ -491,7 +556,7 @@ const CardNewsPage = () => {
                 카드뉴스 생성기
             </h2>
             <div className="wd-full m-2">
-                <CardNewsMaker setting={setting} />
+                <CardNewsMaker setting={setting} textScript={textScript}/>
                 <CardNewsBasicSetting
                     onChangeFont={(font) => { handleChangeFont(font) }}
                     onChangeTitleTextSize={(size) => { handleChangeTitleTextSize(size) }}
@@ -508,6 +573,7 @@ const CardNewsPage = () => {
                     onClickTextShadow={(isShadow) => { handleClickTextShadow(isShadow) }}
                     onChangeBackgroundImage={(e) => { handleBackgroundImageChange(e) }}
                     onChangeBackgroundImageOpacity={(opacity) => { handleBackgroundImageOpacityChange(opacity) }}
+                    onChangeTextScript={(e)=>{handleTextScriptChange(e)}}
                 />
             </div>
         </>
