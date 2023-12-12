@@ -1,6 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
-const CardNews = ({ page, setting, title, content }) => {
+const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef }) => {
     const canvasRef = useRef(null);
 
     const [titleText, setTitleText] = useState("");
@@ -167,7 +169,20 @@ const CardNews = ({ page, setting, title, content }) => {
         applyCommonSettings();
         renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
 
-    }, [canvasRef, setting, imageSrc, title, content]);
+        
+
+    }, [canvasRef, setting, imageSrc, title, content, titleText, contentText]);
+
+    // 최초 마운트 시에만 실행될 로직
+    useEffect(() => {
+        addCanvasRef(canvasRef.current);
+
+        return () => {
+            if (canvasRef.current) {
+                removeCanvasRef(canvasRef.current);  // 캔버스가 언마운트될 때 참조 제거
+            }
+        };
+    }, []);
 
     const handleTitleTextChange = (e) => {
         setTitleText(e.target.value);
@@ -296,6 +311,30 @@ const CardNewsBasicSetting = (props) => {
 const CardNewsMaker = ({ setting, textScript }) => {
     const [cardList, setCardList] = useState([]);
     const scrollRef = useRef(null);
+    const canvasRefs = useRef([]);  // 캔버스 참조를 저장할 배열
+
+    const downloadAllImages = async () => {
+        const zip = new JSZip();
+        const imgFolder = zip.folder("images");
+
+        canvasRefs.current.forEach((canvas, index) => {
+            if (canvas) {
+                const image = canvas.toDataURL("image/png").replace("data:image/png;base64,", "");
+                imgFolder.file(`canvas-image-${index + 1}.png`, image, { base64: true });
+            }
+        });
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, "canvas-images.zip");
+    };
+
+    const addCanvasRef = (canvas) => {
+        canvasRefs.current.push(canvas);  // 캔버스 참조 추가
+    };
+
+    const removeCanvasRef = (canvas) => {
+        canvasRefs.current = canvasRefs.current.filter(ref => ref !== canvas);  // 캔버스 참조 제거
+    };
 
     useEffect(() => {
         if (textScript === "") {
@@ -329,11 +368,12 @@ const CardNewsMaker = ({ setting, textScript }) => {
     return (
         <div ref={scrollRef} className='flex bg -zinc-950 border-double border-gray-900 border-4 wd-full overflow-auto'>
             <div className="flex flex-row justify-center items-center">
-                {cardList.map((card) => {
-                    return (<CardNews key={card.page} page={card.page} title={card.title} content={card.content} setting={setting} />);
+                {cardList.map((card, index) => {
+                    return (<CardNews key={card.page} page={card.page} title={card.title} content={card.content} setting={setting} addCanvasRef={addCanvasRef} removeCanvasRef={removeCanvasRef}/>);
                 })}
                 <button className='bg-zinc-700 px-2 rounded-full bg-opacity-80 text-center mx-12' onClick={handleAddCardNews}>+</button>
             </div>
+            <button onClick={downloadAllImages}>전체 이미지 다운로드</button>
         </div>
     );
 }
