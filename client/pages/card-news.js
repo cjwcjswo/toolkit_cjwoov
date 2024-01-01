@@ -5,20 +5,13 @@ import { saveAs } from 'file-saver';
 const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef }) => {
     const canvasRef = useRef(null);
 
-    const [titleText, setTitleText] = useState("");
-    const [contentText, setContentText] = useState("");
+    const [titleText, setTitleText] = useState(title);
+    const [contentText, setContentText] = useState(content);
     const [imageSrc, setImageSrc] = useState('');
 
     useEffect(() => {
         if (!canvasRef.current) {
             return;
-        }
-
-        if (title !== "") {
-            setTitleText(title);
-        }
-        if (content !== "") {
-            setContentText(content);
         }
         
         const canvas = canvasRef.current;
@@ -43,7 +36,7 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
         };
 
         // 텍스트 렌더링 함수
-        const renderText = (titleText, contentText, titleTextStyle, contentTextStyle) => {
+        const renderText = () => {
             if (titleText === '' && contentText === '') {
                 return;
             }
@@ -57,10 +50,10 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
             const MARGIN_Y = 50;
 
             ctx.textAlign = 'center';
-            if (titleTextStyle.textHorizontalAlign === 'left') {
+            if (setting.textHorizontalAlign === 'left') {
                 ctx.textAlign = 'left';
                 textX = MARGIN_X;
-            } else if (titleTextStyle.textHorizontalAlign === 'right') {
+            } else if (setting.textHorizontalAlign === 'right') {
                 ctx.textAlign = 'right';
                 textX = canvas.width - MARGIN_X;
             } else {
@@ -71,38 +64,38 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
             let textX, textY = 0;
 
             textLines.forEach((line) => {
-                ctx.font = `${contentTextStyle.textThickness} ${contentTextStyle.textSize}px ${contentTextStyle.font}`
+                ctx.font = `${setting.contentTextStyle.textSize}px ${setting.contentTextStyle.font}`
                 const textMetrics = ctx.measureText(line);
                 const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
 
-                if (titleTextStyle.textVerticalAlign === 'top') {
+                if (setting.textVerticalAlign === 'top') {
                     // empty
-                } else if (titleTextStyle.textVerticalAlign === 'middle') {
+                } else if (setting.textVerticalAlign === 'middle') {
                     textY -= (textHeight + MARGIN_Y) / 2;
                 } else {
                     textY -= (textHeight + MARGIN_Y);
                 }
             });
 
-            if (titleTextStyle.textVerticalAlign === 'top') {
+            if (setting.textVerticalAlign === 'top') {
                 // empty
-            } else if (titleTextStyle.textVerticalAlign === 'middle') {
+            } else if (setting.textVerticalAlign === 'middle') {
                 textY += canvas.height / 2;
             } else {
                 textY += canvas.height - MARGIN_Y;
             }
 
             if (titleText !== '') {
-                ctx.fillStyle = titleTextStyle.textColor;
-                ctx.font = `${titleTextStyle.textThickness} ${titleTextStyle.textSize}px ${titleTextStyle.font}`
+                ctx.fillStyle = setting.titleTextStyle.textColor;
+                ctx.font = `${setting.titleTextStyle.textSize}px ${setting.font}`
                 
                 const textMetrics = ctx.measureText(titleText);
                 const textHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent;
 
                 textY += MARGIN_Y;
-                if (titleTextStyle.textVerticalAlign === 'middle') {
+                if (setting.textVerticalAlign === 'middle') {
                     textY -= (textHeight / 2 + MARGIN_Y);
-                } else if (titleTextStyle.textVerticalAlign == 'bottom') {
+                } else if (setting.textVerticalAlign == 'bottom') {
                     textY -= textHeight + MARGIN_Y;
                 }
                 ctx.fillText(titleText, textX, textY);
@@ -114,8 +107,8 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
             }
 
             if (contentText !== '') {
-                ctx.fillStyle = contentTextStyle.textColor;
-                ctx.font = `${contentTextStyle.textThickness} ${contentTextStyle.textSize}px ${contentTextStyle.font}`
+                ctx.fillStyle = setting.contentTextStyle.textColor;
+                ctx.font = `${setting.contentTextStyle.textSize}px ${setting.font}`
 
                 textLines.forEach((line) => {
                     const textMetrics = ctx.measureText(line);
@@ -131,35 +124,27 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
             }
         };
 
-        if (imageSrc !== '') {
+        if (imageSrc !== '' || setting.backgroundImage !== '') {
             const image = new Image();
-            image.src = imageSrc;
 
-            image.onload = () => {
-                ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-
-                ctx.globalAlpha = 1;
-                applyCommonSettings();
-                renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
-            };
-
-            return;
-        }
-
-        if (setting.backgroundImage !== '') {
-            const image = new Image();
-            image.src = setting.backgroundImage;
-
+            if (imageSrc !== '') {
+                image.src = imageSrc;
+            } else {
+                image.src = setting.backgroundImage;    
+            }
+            
             image.onload = () => {
                 ctx.globalAlpha = setting.backgroundImageOpacity;
                 ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
 
                 ctx.globalAlpha = 1;
                 applyCommonSettings();
-                renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
+                renderText();
             };
 
-            return;
+            return () => {
+                image.onload = null;
+            };
         }
 
         ctx.globalAlpha = 1;
@@ -167,11 +152,9 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         applyCommonSettings();
-        renderText(titleText, contentText, setting.titleTextStyle, setting.contentTextStyle);
+        renderText();
 
-        
-
-    }, [canvasRef, setting, imageSrc, title, content, titleText, contentText]);
+    }, [canvasRef, setting, imageSrc, titleText, contentText]);
 
     // 최초 마운트 시에만 실행될 로직
     useEffect(() => {
@@ -215,11 +198,11 @@ const CardNews = ({ page, setting, title, content, addCanvasRef, removeCanvasRef
             <div className="m-2 hidden md:block">
                 <div>
                     제목
-                    <input type="text" className="w-full text-black" onChange={handleTitleTextChange} />
+                    <input type="text" className="w-full text-black" onChange={handleTitleTextChange} value={titleText}/>
                 </div>
                 <div className="mt-2 w-full">
                     내용
-                    <textarea className="w-full text-black" rows="5" onChange={handleContentTextChange} />
+                    <textarea className="w-full text-black" rows="5" onChange={handleContentTextChange} value={contentText}/>
                 </div>
                 <div className="mt-2">
                     <input type="file" accept="image/*" onChange={handleImageChange}/>
@@ -244,19 +227,11 @@ const CardNewsBasicSetting = (props) => {
                     onChange={(e) => { props.onChangeTitleTextSize(e.target.value) }} />
             </div>
             <div className="mt-4">
-                제목 굵기: <input type="range" min="1" max="1000" step="1" className="w-1/4"
-                    onChange={(e) => { props.onChangeTitleTextThickness(e.target.value) }} />
-            </div>
-            <div className="mt-4">
                 내용 색상: <input type="color" onChange={(e) => { props.onChangeContentTextColor(e.target.value) }} />
             </div>
             <div className="mt-4">
                 내용 크기: <input type="range" min="10" max="256" step="1" className="w-1/4"
                     onChange={(e) => { props.onChangeContentTextSize(e.target.value) }} />
-            </div>
-            <div className="mt-4">
-                내용 굵기: <input type="range" min="1" max="1000" step="1" className="w-1/4"
-                    onChange={(e) => { props.onChangeContentTextThickness(e.target.value) }} />
             </div>
             <div className="mt-4">
                 폰트 선택:
@@ -380,175 +355,117 @@ const CardNewsMaker = ({ setting, textScript }) => {
 
 const DEFAULT_SETTING = {
     "titleTextStyle": {
-        "font": DEFAULT_FONTS[0],
         "textColor": "black",
-        "textSize": 128,
-        "textThickness": 1,
-        "textHorizontalAlign": "right",
-        "textVerticalAlign": "top"
+        "textSize": 128
     },
     "contentTextStyle": {
-        "font": DEFAULT_FONTS[0],
         "textColor": "black",
-        "textSize": 100,
-        "textThickness": 1,
-        "textHorizontalAlign": "right",
-        "textVerticalAlign": "top"
+        "textSize": 100
     },
+    "font": DEFAULT_FONTS[0],
     "textStrokeSize": 0,
     "textStrokeColor": "white",
-    "backgroundColor": "white",
-    "backgroundImage": "",
     "textShadow": false,
+    "textHorizontalAlign": "right",
+    "textVerticalAlign": "top",
+    "backgroundColor": "white",
     "backgroundImage": "",
     "backgroundImageOpacity": 100
 
 };
+
+const useSettings = (initialSettings) => {
+    const [settings, setSettings] = useState(initialSettings);
+  
+    const updateSetting = (key, value) => {
+        setSettings(prev => ({
+            ...prev,
+            [key]: value
+        }));
+    };
+  
+    const updateNestedSetting = (key, subKey, value) => {
+        setSettings(prev => ({
+            ...prev,
+            [key]: {
+                ...prev[key],
+                [subKey]: value
+            }
+        }));
+    };
+
+    const toggleSetting = (key) => {
+        setSettings(prev => ({
+            ...prev,
+            [key]: !prev[key]
+        }));
+    };
+  
+    return { settings, updateSetting, updateNestedSetting, toggleSetting };
+  };
+  
 const CardNewsPage = () => {
-    const [setting, setSetting] = useState(DEFAULT_SETTING);
+    const { settings, updateSetting, updateNestedSetting, toggleSetting } = useSettings(DEFAULT_SETTING);
     const [textScript, setTextScript] = useState('');
 
     // 폰트 변경
     const handleChangeFont = (font) => {
-        setSetting({
-            ...setting,
-            "titleTextStyle": {
-                ...setting.titleTextStyle,
-                "font": font
-            },
-            "contentTextStyle": {
-                ...setting.contentTextStyle,
-                "font": font
-            }
-        });
-    }
-
-    // 제목 크기 변경
-    const handleChangeTitleTextSize = (size) => {
-        setSetting({
-            ...setting,
-            "titleTextStyle": {
-                ...setting.titleTextStyle,
-                "textSize": size
-            }
-        });
-    }
-
-    // 제목 색상 변경
-    const handleChangeTitleTextColor = (color) => {
-        setSetting({
-            ...setting,
-            "titleTextStyle": {
-                ...setting.titleTextStyle,
-                "textColor": color
-            }
-        });
-    }
-
-    // 제목 굵기 변경
-    const handleChangeTitleTextThickness = (thickness) => {
-        setSetting({
-            ...setting,
-            "titleTextStyle": {
-                ...setting.titleTextStyle,
-                "textThickness": thickness
-            }
-        });
-    }
-
-    // 내용 크기 변경
-    const handleChangeContentTextSize = (size) => {
-        setSetting({
-            ...setting,
-            "contentTextStyle": {
-                ...setting.contentTextStyle,
-                "textSize": size
-            }
-        });
-    }
-
-    // 내용 색상 변경
-    const handleChangeContentTextColor = (color) => {
-        setSetting({
-            ...setting,
-            "contentTextStyle": {
-                ...setting.contentTextStyle,
-                "textColor": color
-            }
-        });
-    }
-
-    // 내용 굵기 변경
-    const handleChangeContentTextThickness = (thickness) => {
-        setSetting({
-            ...setting,
-            "contentTextStyle": {
-                ...setting.contentTextStyle,
-                "textThickness": thickness
-            }
-        });
+        updateSetting("font", font);
     }
 
     // 글자 외곽선 색상 변경
-    const handleChangeTextStrokeColor = (color) => {
-        setSetting({
-            ...setting,
-            "textStrokeColor": color
-        })
+    const handleChangeTextStrokeColor = (textStrokeColor) => {
+        updateSetting("textStrokeColor", textStrokeColor);
     }
 
     // 글자 외곽선 굵기 변경
-    const handleChangeTextStrokeSize = (size) => {
-        setSetting({
-            ...setting,
-            "textStrokeSize": size
-        })
+    const handleChangeTextStrokeSize = (textStrokeSize) => {
+        updateSetting("textStrokeSize", textStrokeSize);
     }
 
     // 배경 색상 변경
-    const handleChangeBackgroundColor = (color) => {
-        setSetting({
-            ...setting,
-            "backgroundColor": color
-        });
+    const handleChangeBackgroundColor = (backgroundColor) => {
+        updateSetting("backgroundColor", backgroundColor);
     }
 
     // 글자 수평 정렬
-    const handleClickTextHorizontalAlign = (align) => {
-        setSetting({
-            ...setting,
-            "titleTextStyle": {
-                ...setting.titleTextStyle,
-                "textHorizontalAlign": align
-            },
-            "contentTextStyle": {
-                ...setting.contentTextStyle,
-                "textHorizontalAlign": align
-            }
-        });
+    const handleClickTextHorizontalAlign = (textHorizontalAlign) => {
+        updateSetting("textHorizontalAlign", textHorizontalAlign);
     }
 
     // 글자 수직 정렬
-    const handleClickTextVerticalAlign = (align) => {
-        setSetting({
-            ...setting,
-            "titleTextStyle": {
-                ...setting.titleTextStyle,
-                "textVerticalAlign": align
-            },
-            "contentTextStyle": {
-                ...setting.contentTextStyle,
-                "textVerticalAlign": align
-            }
-        });
+    const handleClickTextVerticalAlign = (textVerticalAlign) => {
+        updateSetting("textVerticalAlign", textVerticalAlign);
+    }
+
+    // 배경 이미지 투명도 조절
+    const handleBackgroundImageOpacityChange = (opacity) => {
+        updateSetting("backgroundImageOpacity", opacity);
+    }
+
+    // 제목 크기 변경
+    const handleChangeTitleTextSize = (titleTextSize) => {
+        updateNestedSetting("titleTextStyle", "textSize", titleTextSize);
+    }
+
+    // 제목 색상 변경
+    const handleChangeTitleTextColor = (titleTextColor) => {
+        updateNestedSetting("titleTextStyle", "textColor", titleTextColor);
+    }
+
+    // 내용 크기 변경
+    const handleChangeContentTextSize = (contentTextSize) => {
+        updateNestedSetting("contentTextStyle", "textSize", contentTextSize);
+    }
+
+    // 내용 색상 변경
+    const handleChangeContentTextColor = (contentTextColor) => {
+        updateNestedSetting("contentTextStyle", "textColor", contentTextColor);
     }
 
     // 글자 그림자 여부
     const handleClickTextShadow = () => {
-        setSetting({
-            ...setting,
-            "textShadow": !setting.textShadow
-        });
+        toggleSetting("textShadow");
     }
 
     // 이미지 파일 선택 핸들러
@@ -562,10 +479,7 @@ const CardNewsPage = () => {
         reader.readAsDataURL(file);
 
         reader.onloadend = () => {
-            setSetting({
-                ...setting,
-                "backgroundImage": reader.result
-            });
+            updateSetting("backgroundImage", reader.result);
         };   
     };
 
@@ -581,14 +495,6 @@ const CardNewsPage = () => {
         };
     }
 
-    // 배경 이미지 투명도 조절
-    const handleBackgroundImageOpacityChange = (opacity) => {
-        setSetting({
-            ...setting,
-            "backgroundImageOpacity": opacity
-        });
-    }
-
     return (
         <>
             <h2 className="flex items-center">
@@ -596,15 +502,13 @@ const CardNewsPage = () => {
                 카드뉴스 생성기
             </h2>
             <div className="wd-full m-2">
-                <CardNewsMaker setting={setting} textScript={textScript}/>
+                <CardNewsMaker setting={settings} textScript={textScript}/>
                 <CardNewsBasicSetting
                     onChangeFont={(font) => { handleChangeFont(font) }}
                     onChangeTitleTextSize={(size) => { handleChangeTitleTextSize(size) }}
                     onChangeTitleTextColor={(color) => { handleChangeTitleTextColor(color) }}
-                    onChangeTitleTextThickness={(thickness) => { handleChangeTitleTextThickness(thickness) }}
                     onChangeContentTextSize={(size) => { handleChangeContentTextSize(size) }}
                     onChangeContentTextColor={(color) => { handleChangeContentTextColor(color) }}
-                    onChangeContentTextThickness={(thickness) => { handleChangeContentTextThickness(thickness) }}
                     onChangeTextStrokeColor={(color) => { handleChangeTextStrokeColor(color) }}
                     onChangeTextStrokeSize={(size) => { handleChangeTextStrokeSize(size) }}
                     onChangeBackgroundColor={(color) => { handleChangeBackgroundColor(color) }}
